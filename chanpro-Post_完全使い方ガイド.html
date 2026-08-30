@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>chanpro-Post 完全使い方ガイド</title>
+<style>
+:root{--bg:#f5f7fa;--panel:#fff;--text:#17202a;--muted:#657786;--line:#e1e8ed;--blue:#1d9bf0;--blue2:#e8f5fd;--shadow:0 8px 30px rgba(23,32,42,.08);--code:#111827}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;line-height:1.75}
+button,input{font:inherit}
+button{cursor:pointer}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+.app{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;overflow:auto;background:#fff;border-right:1px solid var(--line);padding:22px 16px}
+.brand{font-weight:900;font-size:21px;color:var(--blue);padding:6px 10px 20px}
+.brand small{display:block;color:var(--muted);font-size:12px;font-weight:600;margin-top:2px}
+.nav button{width:100%;text-align:left;border:0;background:transparent;padding:10px 12px;border-radius:12px;color:var(--text);margin:2px 0}
+.nav button:hover,.nav button.active{background:var(--blue2);color:var(--blue);font-weight:800}
+.main{min-width:0;max-width:1120px;width:100%;margin:auto;padding:28px 30px 80px}
+.hero{background:linear-gradient(135deg,#fff,#eaf6ff);border:1px solid #d8edf9;border-radius:24px;padding:34px;box-shadow:var(--shadow);margin-bottom:22px}
+.hero h1{margin:0 0 8px;font-size:clamp(28px,4vw,44px);line-height:1.2}
+.hero p{margin:8px 0;color:#405466}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.badge{background:#fff;border:1px solid var(--line);padding:5px 10px;border-radius:999px;font-size:13px}
+.searchbar{position:sticky;top:14px;z-index:20;background:rgba(245,247,250,.9);backdrop-filter:blur(10px);padding:10px 0}
+.searchbox{width:100%;border:1px solid #cfd9de;background:#fff;border-radius:16px;padding:14px 18px;outline:0;box-shadow:0 3px 15px rgba(0,0,0,.04)}
+.searchbox:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(29,155,240,.12)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 24px}
+.tool{border:1px solid #cfd9de;background:#fff;border-radius:10px;padding:8px 12px}
+.tool:hover{border-color:var(--blue);color:var(--blue)}
+.section{background:var(--panel);border:1px solid var(--line);border-radius:20px;margin:20px 0;box-shadow:0 4px 18px rgba(23,32,42,.04);overflow:hidden}
+.section-head{padding:22px 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcfd)}
+.section-head h2{margin:0;font-size:23px}
+.section-head p{margin:5px 0 0;color:var(--muted)}
+.items{padding:6px 24px 18px}
+.item{padding:16px 0;border-bottom:1px solid #eef1f3}
+.item:last-child{border-bottom:0}
+.item h3{font-size:16px;margin:0 0 5px}
+.item p{margin:0;color:#34495e}
+.callout{margin:12px 0;padding:13px 15px;border-left:4px solid var(--blue);background:#f4faff;border-radius:8px}
+.warn{border-left-color:#f59e0b;background:#fffaf0}
+.kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#eef1f3;border:1px solid #d6dde2;border-radius:5px;padding:1px 6px;font-size:12px}
+.hidden{display:none!important}
+.noresults{padding:35px;text-align:center;color:var(--muted);background:#fff;border:1px dashed #cfd9de;border-radius:16px}
+.progress{height:5px;background:#e8edf0;border-radius:99px;overflow:hidden;position:fixed;top:0;left:0;right:0;z-index:100}
+.progress i{display:block;height:100%;width:0;background:var(--blue)}
+.funcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;padding:20px 24px 24px}
+.func{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fafcfd}
+.func code{font-weight:800;color:#075985}
+.func span{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+.tablewrap{overflow:auto;padding:0 24px 24px}
+table{width:100%;border-collapse:collapse;min-width:600px}
+th,td{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}
+th{background:#f7f9fa}
+.footer{color:var(--muted);font-size:13px;margin-top:35px}
+@media(max-width:800px){.app{display:block}.side{position:fixed;left:-285px;z-index:50;transition:.2s;width:270px;box-shadow:var(--shadow)}.side.open{left:0}.main{padding:18px 14px 80px}.menuBtn{display:block!important;position:fixed;bottom:16px;left:16px;z-index:60;background:var(--blue);color:#fff;border:0;border-radius:999px;padding:12px 15px;box-shadow:var(--shadow)}}
+.menuBtn{display:none}
+@media(prefers-color-scheme:dark){body.dark-auto{background:#111827}}
+</style>
+</head>
+<body>
+<div class="progress"><i id="progress"></i></div>
+<button class="menuBtn" id="menuBtn">☰ メニュー</button>
+<div class="app">
+<aside class="side" id="side">
+  <div class="brand">chanpro-Post<div><small>完全使い方ガイド</small></div></div>
+  <div class="nav" id="nav"></div>
+</aside>
+<main class="main">
+  <section class="hero">
+    <h1>chanpro-Post<br>完全使い方ガイド</h1>
+    <p>提供された chanpro-Post のHTML/JavaScriptをもとに、画面・操作・裏側の仕組みまで一つにまとめたマニュアルです。</p>
+    <div class="badges">
+      <span class="badge">🔎 全文検索</span><span class="badge">📱 スマホ対応</span>
+      <span class="badge">🧭 画面別ガイド</span><span class="badge">🧩 開発者向け情報</span>
+    </div>
+  </section>
+
+  <div class="searchbar">
+    <input id="q" class="searchbox" placeholder="🔎 使い方を検索… 例：リポスト、DM、BAN、ハッシュタグ">
+  </div>
+  <div class="tools">
+    <button class="tool" id="expand">すべて開く</button>
+    <button class="tool" id="collapse">すべて閉じる</button>
+    <button class="tool" id="top">ページ上部へ</button>
+    <button class="tool" id="print">印刷 / PDF</button>
+  </div>
+
+  <div id="content"></div>
+
+  <section class="section" id="functions">
+    <div class="section-head"><h2>🧩 内部関数一覧</h2><p>提供された1ファイル内で確認できる関数を、カテゴリ別に整理しています。</p></div>
+    <div id="funcs"></div>
+  </section>
+
+  <section class="section" id="db">
+    <div class="section-head"><h2>🗄️ データベース構成の見取り図</h2><p>ソースコード中のSupabase参照から確認できるテーブルです。</p></div>
+    <div class="tablewrap"><table><thead><tr><th>テーブル</th><th>主な用途（コードから読み取れる範囲）</th></tr></thead><tbody id="dbrows"></tbody></table></div>
+  </section>
+
+  <div class="footer">
+    このガイドは、今回提供された chanpro-Post のソースコードを基準に作成しています。
+    ソースにない仕様や、Supabase側のRLS・SQL・管理画面の外部設定などは断定していません。
+  </div>
+</main>
+</div>
+
+<script>
+const sections = [{"id": "start", "icon": "🚀", "title": "まずここから", "desc": "初めて使う人向け。ログインから投稿までを最短で理解できます。", "items": [["ログイン", "ログイン画面で「ユーザー名」「パスワード」を入力し、「ログイン」を押します。保存されたログイン情報があれば、次回は自動復帰を試みます。"], ["新規アカウント", "ユーザー名は2文字以上、パスワードは6文字以上が必要です。同じユーザー名がすでに使われている場合は作成できません。"], ["ログアウト", "左側メニューの「ログアウト」を押します。保存されている chanpro-Post のログイン情報を消して、ログイン画面へ戻ります。"], ["最初に見る場所", "ログイン後は「ホーム」が開き、最新の投稿を見られます。右側には「トレンド」と「おすすめユーザー」があります。"]]}, {"id": "home", "icon": "🏠", "title": "ホーム", "desc": "投稿を見る、投稿する、投稿を操作する場所です。", "items": [["投稿する", "ホーム上部の「いまどうしてる？」に本文を入力し、「投稿」を押します。画像URLを指定すると画像付き投稿にできます。"], ["ハッシュタグ", "本文に #文字 の形でタグを書くと、ハッシュタグとして扱われます。投稿後、トレンド集計にも使われます。"], ["リンク", "投稿本文の http:// または https:// のURLはクリックできるリンクとして表示されます。"], ["投稿を開く", "投稿本文をクリックすると「投稿」詳細画面が開きます。ここでは本文、投稿日時、返信、リポスト、いいね、ブックマークを確認できます。"], ["いいね", "♡系の「いいね」ボタンで追加・解除できます。自分が押した状態は色で表示されます。"], ["リポスト", "🔁のリポストボタンで追加・解除できます。プロフィールでは、自分がリポストした投稿も時系列に表示されます。"], ["ブックマーク", "しおりのボタンで投稿を保存できます。保存した投稿は「ブックマーク」から確認できます。"], ["自分の投稿を削除", "自分の投稿には削除ボタンが表示されます。確認画面で削除できます。"], ["限定投稿", "認証済みユーザーは「限定投稿」を選べます。限定投稿は認証済みユーザーのみ閲覧できます。"]]}, {"id": "search", "icon": "🔎", "title": "検索", "desc": "ユーザー、投稿、ハッシュタグを探せます。", "items": [["通常検索", "「ユーザー・投稿・#ハッシュタグ」欄に文字を入力し、Enterで検索します。ユーザー名と投稿本文を対象に検索します。"], ["ユーザー検索", "ユーザー名の一部でも検索できます。検索結果からユーザーをクリックするとプロフィールを開けます。"], ["投稿検索", "投稿本文に検索語が含まれる投稿を検索します。最大30件が対象です。"], ["ハッシュタグ検索", "#から始めて検索すると、そのタグが付いた投稿を探します。最大50件の投稿IDを取得して表示します。"], ["トレンド", "右側のトレンドは、投稿に付いたハッシュタグの出現回数を数え、上位3つを表示します。"]]}, {"id": "follow", "icon": "👥", "title": "フォロー・プロフィール", "desc": "ユーザーを探してフォローしたり、プロフィールを編集したりできます。", "items": [["おすすめユーザー", "右側に最大5人のおすすめユーザーが表示されます。「フォロー中」なら解除もできます。"], ["プロフィールを見る", "アイコンやユーザー名をクリックするとプロフィールを開けます。"], ["フォローする", "他ユーザーのプロフィールで「フォロー」を押します。フォローすると、そのユーザーの投稿通知を受け取る仕組みがあります。"], ["フォロー中・フォロワー", "プロフィールの人数をクリックすると一覧を開けます。一覧から相手のプロフィールを開いたり、フォロー状態を変更できます。"], ["プロフィール編集", "自分のプロフィールで「プロフィール編集」を押します。ユーザー名、アイコンURL、背景画像URL、自己紹介、chanpro.jpのプログラムURLを変更できます。"], ["作品リンク", "プロフィールには chanpro.jp のプログラムプロフィールURLを1つ設定できます。URLは https://chanpro.jp/00-program-profile/ から始まるものだけが有効です。"]]}, {"id": "detail", "icon": "💬", "title": "返信・投稿詳細", "desc": "投稿を開いたときの詳しい使い方です。", "items": [["返信する", "投稿詳細画面の「返信する」を押して文章を入力します。"], ["返信に返信", "各返信の「返信」を押すと、その返信を親として返信できます。画面では左側の線で階層が分かります。"], ["返信を削除", "自分が書いた返信には削除操作があります。確認後に削除します。"], ["返信通知", "投稿への返信が作られると、投稿者向けの通知が作られます。"], ["詳細画面へ戻る", "上部の「←」でホームへ戻れます。"]]}, {"id": "notifications", "icon": "🔔", "title": "通知", "desc": "いいね、返信、リポスト、フォロー、投稿、DMなどを確認できます。", "items": [["通知の種類", "いいね、返信、リポスト、フォロー、新しい投稿、DMに対応しています。"], ["未読マーク", "未読通知があると左メニューの通知アイコンに赤い点が付きます。"], ["既読にする", "通知ページを開くと未読通知を既読にする処理が実行されます。"], ["投稿通知を開く", "返信や新しい投稿など、投稿IDを持つ通知はクリックして投稿詳細を開けます。"], ["DM通知", "DM通知をクリックすると、その相手とのDM画面を開けます。"]]}, {"id": "dm", "icon": "✉️", "title": "DM", "desc": "ユーザー同士のダイレクトメッセージを使う場所です。", "items": [["DM一覧", "DMページでは、過去にやり取りした相手が一覧表示されます。最新のメッセージと日時も表示されます。"], ["DMを開始", "相手のプロフィールにある「DM」ボタンから会話を開始できます。"], ["メッセージ送信", "DM画面の入力欄からメッセージを送信します。"], ["リアルタイム", "ソースでは MQTT を使ってDMや投稿関連イベントをリアルタイムに受け取る仕組みが入っています。"], ["通知との連携", "DMが届くと通知にも表示され、通知から直接DMを開けます。"]]}, {"id": "bookmarks", "icon": "🔖", "title": "ブックマーク", "desc": "あとで読みたい投稿を保存しておく場所です。", "items": [["保存", "投稿のしおりボタンを押します。「ブックマークしました」と表示されます。"], ["解除", "保存済みの投稿で同じボタンを押すと解除できます。"], ["一覧", "左メニューの「ブックマーク」で保存済み投稿を確認できます。最大50件を取得します。"]]}, {"id": "limited", "icon": "🔒", "title": "限定投稿・認証", "desc": "このサイト特有の閲覧制限を整理しています。", "items": [["誰が使える？", "ソース上では users.verified が true のユーザーに限定投稿の切り替えUIが表示されます。"], ["閲覧条件", "限定投稿は認証済みユーザーだけが見られる設計です。ホーム、詳細、検索、プロフィール、ブックマークなどで非認証ユーザーから除外する処理があります。"], ["認証バッジ", "認証済みユーザー名の横には青いチェック風のバッジが表示されます。"], ["注意", "このマニュアルは提供されたHTML/JavaScriptの動作を説明したものです。Supabase側のRLSなど、サーバー側の設定まではこのファイルだけでは確認できません。"]]}, {"id": "admin", "icon": "🛠️", "title": "管理者機能", "desc": "role が admin のユーザーだけが使える管理画面です。", "items": [["管理画面", "左メニューの「管理」は admin 権限のユーザーにだけ表示されます。"], ["ダッシュボード", "ユーザー数、投稿数、未処理通報数を確認できます。"], ["ユーザー管理", "最大200人を一覧表示し、権限変更、認証のON/OFF、BAN、ユーザー削除を行えます。"], ["投稿管理", "最大200件の投稿を一覧表示し、管理者から投稿を削除できます。"], ["通報管理", "未処理の通報を最大100件表示し、対応済みにするか、対象ユーザーをBANできます。"], ["通報", "投稿・返信について通報処理の関数が用意されています。ただし、提供された画面では投稿の通報ボタンがコメントアウトされている箇所があります。"]]}, {"id": "security", "icon": "🛡️", "title": "端末・ログインまわり", "desc": "ログイン時に裏側で行われている処理です。", "items": [["パスワード", "入力したパスワードをSHA-256でハッシュ化して、users.password_hash と照合します。"], ["ログイン保持", "localStorage の chanpro_post_user にユーザーIDを保存して、次回アクセス時に復帰を試みます。"], ["端末識別", "ブラウザ情報、画面サイズ、言語、タイムゾーンなどと、localStorage/sessionStorageのdeviceKeyを組み合わせてSHA-256ハッシュを作ります。"], ["端末BAN", "作った端末ハッシュを banned_devices と照合し、BAN対象ならログイン・新規登録を止めます。"], ["端末記録", "ログイン時に user_devices へ端末ハッシュや端末情報、最終ログイン時刻を保存する処理があります。"], ["重要な注意", "これはフロントエンド側の実装説明です。パスワード認証や権限管理を本番運用する場合は、SupabaseのRLS・Auth・API設計も確認する必要があります。"]]}, {"id": "mobile", "icon": "📱", "title": "スマホ・タブレットでの使い方", "desc": "画面幅によって自動的にレイアウトが変わります。", "items": [["PC", "左にメニュー、中央にメイン、右にトレンド・おすすめユーザーが表示されます。"], ["中くらいの画面", "右側バーが隠れ、左メニューが細くなります。"], ["スマホ", "下部に固定メニューが移動し、メイン画面を広く使います。投稿ボタンやロゴは省スペース化されます。"], ["操作のコツ", "スマホではアイコン中心のメニューになるので、アイコンの意味を覚えると素早く移動できます。"]]}, {"id": "map", "icon": "🗺️", "title": "画面・機能マップ", "desc": "サイト全体を一枚で把握します。", "items": [["ログイン", "ログイン / 新規アカウント作成"], ["ホーム", "投稿 / 画像URL / ハッシュタグ / いいね / リポスト / ブックマーク / 削除"], ["検索", "ユーザー / 投稿 / ハッシュタグ"], ["通知", "いいね / 返信 / リポスト / フォロー / 投稿 / DM"], ["フォロー中", "フォローしている人の投稿を新しい順に表示（最大10件）"], ["DM", "DM一覧 / 会話 / 送信 / リアルタイム連携"], ["プロフィール", "投稿 / リポスト / フォロー / フォロワー / DM / 編集 / 作品URL"], ["ブックマーク", "保存済み投稿"], ["投稿詳細", "本文 / 返信 / 返信への返信 / いいね / リポスト / ブックマーク"], ["管理", "ユーザー / 投稿 / 通報"]]}, {"id": "tech", "icon": "🧩", "title": "開発者向けリファレンス", "desc": "提供された1ファイルのコードから確認できる主な内部構造です。", "items": [["外部ライブラリ", "Supabase JavaScript v2 と MQTT.js をCDNから読み込んでいます。"], ["データベース", "コードから参照されるテーブルは users, posts, likes, replies, reposts, bookmarks, follows, notifications, messages, hashtags, post_hashtags, reports, banned_devices, user_devices です。"], ["キャッシュ", "users、posts、follows、trends、suggestedUsersなどを cache に保持して、同じ情報の再取得を減らす構造があります。"], ["リアルタイム", "MQTT broker は wss://broker.hivemq.com:8884/mqtt。ユーザー別トピックと全体トピックを購読する実装があります。"], ["画像", "画像はURL方式で、投稿画像・アイコン・プロフィール背景を表示します。投稿時の画像URLは http/https のみ受け付けます。"], ["このページの方針", "ここにない動作は、提供されたソースだけでは確認できないものとして扱っています。"]]}];
+const functionGroups = {"認証・端末": ["login", "createAccount", "restoreLogin", "logout", "hashPassword", "getDeviceInfo", "sha256", "getLocalDeviceKey", "getSessionDeviceKey", "getDeviceKey", "getDeviceHash", "isDeviceBanned", "saveUserDevice"], "投稿・返信": ["quickPost", "submitPost", "createPost", "extractHashtags", "showPostDetail", "openDetailReplyComposer", "closeDetailReplyComposer", "submitDetailReply", "renderDetailReplies", "deleteReply", "replyPost", "submitReply", "deletePost", "executeDeletePost"], "反応": ["toggleLike", "toggleRepost", "toggleBookmark", "getPostMeta"], "ユーザー": ["getUser", "getUsers", "showMyProfile", "showUserProfile", "showFollowList", "toggleFollowFromList", "toggleFollow", "openProfileEdit", "saveProfileEdit", "validProgramUrl", "validHttpUrl"], "検索・表示": ["searchAll", "searchHashtag", "loadHome", "showFollowingLatestPosts", "loadTrends", "renderTrends", "loadSuggestedUsers", "refreshCurrentPage"], "通知・DM": ["loadNotifications", "createNotification", "createNotificationForPost", "notifyFollowersAboutPost", "openDMFromNotification", "openReplyFromNotification", "loadDMs", "openDM", "appendDMMessage", "sendDM", "connectMQTT", "subscribeDMRealtime", "handleMQTTEvent", "mqttPublish", "mqttTopicUser", "mqttTopicGlobal"], "管理": ["checkAdmin", "loadAdmin", "adminUsers", "adminToggleVerified", "adminChangeRole", "adminBan", "adminDeleteUser", "adminPosts", "adminDeletePost", "adminReports", "resolveReport", "reportPost", "reportReply"], "共通UI": ["$", "toast", "openModal", "closeModal", "hidePages", "showPage", "formatDate", "escapeHTML", "linkifyText", "verifiedBadge", "avatarURL", "actionIcon", "setNotificationDot", "updateNotificationDot", "markNotificationsRead"]};
+const functionDesc = {"login": "ユーザー名とSHA-256化したパスワードでログイン。", "createAccount": "新規ユーザーを作成。", "restoreLogin": "保存されたユーザーIDからログイン状態を復元。", "logout": "ログアウトして保存ログイン情報を削除。", "createPost": "投稿をDBへ追加し、ハッシュタグ・通知・MQTTイベントを処理。", "showPostDetail": "投稿詳細と返信を表示。", "searchAll": "ユーザー名・投稿本文を検索。", "searchHashtag": "ハッシュタグから投稿を検索。", "loadHome": "最新投稿を最大50件読み込み。", "showFollowingLatestPosts": "フォロー中ユーザーの投稿を最大10件表示。", "loadNotifications": "通知を最大50件読み込み。", "loadDMs": "DM履歴から相手一覧を作成。", "openDM": "指定ユーザーとのDM画面を開く。", "sendDM": "DMを送信。", "toggleLike": "いいねを追加・解除。", "toggleRepost": "リポストを追加・解除。", "toggleBookmark": "ブックマークを追加・解除。", "showUserProfile": "プロフィールと投稿・リポストを表示。", "toggleFollow": "フォローを追加・解除。", "saveProfileEdit": "プロフィール変更を保存。", "loadAdmin": "管理ダッシュボードを表示。", "adminUsers": "ユーザー管理画面。", "adminPosts": "投稿管理画面。", "adminReports": "通報管理画面。", "adminBan": "ユーザーBAN処理。", "adminDeleteUser": "ユーザー削除処理。", "adminDeletePost": "管理者による投稿削除。", "resolveReport": "通報を対応済みにする。", "connectMQTT": "MQTTへ接続しユーザー/全体トピックを購読。", "getDeviceHash": "端末情報からハッシュを生成。", "isDeviceBanned": "端末BANテーブルを照合。", "hashPassword": "サイト内部で使われる処理。", "getDeviceInfo": "サイト内部で使われる処理。", "sha256": "サイト内部で使われる処理。", "getLocalDeviceKey": "サイト内部で使われる処理。", "getSessionDeviceKey": "サイト内部で使われる処理。", "getDeviceKey": "サイト内部で使われる処理。", "saveUserDevice": "サイト内部で使われる処理。", "quickPost": "サイト内部で使われる処理。", "submitPost": "サイト内部で使われる処理。", "extractHashtags": "サイト内部で使われる処理。", "openDetailReplyComposer": "サイト内部で使われる処理。", "closeDetailReplyComposer": "サイト内部で使われる処理。", "submitDetailReply": "サイト内部で使われる処理。", "renderDetailReplies": "サイト内部で使われる処理。", "deleteReply": "サイト内部で使われる処理。", "replyPost": "サイト内部で使われる処理。", "submitReply": "サイト内部で使われる処理。", "deletePost": "サイト内部で使われる処理。", "executeDeletePost": "サイト内部で使われる処理。", "getPostMeta": "サイト内部で使われる処理。", "getUser": "サイト内部で使われる処理。", "getUsers": "サイト内部で使われる処理。", "showMyProfile": "サイト内部で使われる処理。", "showFollowList": "サイト内部で使われる処理。", "toggleFollowFromList": "サイト内部で使われる処理。", "openProfileEdit": "サイト内部で使われる処理。", "validProgramUrl": "サイト内部で使われる処理。", "validHttpUrl": "サイト内部で使われる処理。", "loadTrends": "サイト内部で使われる処理。", "renderTrends": "サイト内部で使われる処理。", "loadSuggestedUsers": "サイト内部で使われる処理。", "refreshCurrentPage": "サイト内部で使われる処理。", "createNotification": "サイト内部で使われる処理。", "createNotificationForPost": "サイト内部で使われる処理。", "notifyFollowersAboutPost": "サイト内部で使われる処理。", "openDMFromNotification": "サイト内部で使われる処理。", "openReplyFromNotification": "サイト内部で使われる処理。", "appendDMMessage": "サイト内部で使われる処理。", "subscribeDMRealtime": "サイト内部で使われる処理。", "handleMQTTEvent": "サイト内部で使われる処理。", "mqttPublish": "サイト内部で使われる処理。", "mqttTopicUser": "サイト内部で使われる処理。", "mqttTopicGlobal": "サイト内部で使われる処理。", "checkAdmin": "サイト内部で使われる処理。", "adminToggleVerified": "サイト内部で使われる処理。", "adminChangeRole": "サイト内部で使われる処理。", "reportPost": "サイト内部で使われる処理。", "reportReply": "サイト内部で使われる処理。", "$": "サイト内部で使われる処理。", "toast": "サイト内部で使われる処理。", "openModal": "サイト内部で使われる処理。", "closeModal": "サイト内部で使われる処理。", "hidePages": "サイト内部で使われる処理。", "showPage": "サイト内部で使われる処理。", "formatDate": "サイト内部で使われる処理。", "escapeHTML": "サイト内部で使われる処理。", "linkifyText": "サイト内部で使われる処理。", "verifiedBadge": "サイト内部で使われる処理。", "avatarURL": "サイト内部で使われる処理。", "actionIcon": "サイト内部で使われる処理。", "setNotificationDot": "サイト内部で使われる処理。", "updateNotificationDot": "サイト内部で使われる処理。", "markNotificationsRead": "サイト内部で使われる処理。"};
+const dbDesc = {
+  users:"ユーザー情報、認証関連情報、プロフィール、role、verifiedなど",
+  posts:"投稿本文、画像URL、限定投稿フラグ、作成日時など",
+  likes:"投稿へのいいね",
+  replies:"投稿への返信と親返信の関係",
+  reposts:"リポスト記録",
+  bookmarks:"ユーザーが保存した投稿",
+  follows:"フォロー関係",
+  notifications:"いいね・返信・リポスト・フォロー・投稿・DMなどの通知",
+  messages:"DMの送受信メッセージ",
+  hashtags:"ハッシュタグ本体",
+  post_hashtags:"投稿とハッシュタグの対応関係",
+  reports:"通報内容と対応状態",
+  banned_devices:"端末BANのハッシュと理由",
+  user_devices:"ユーザーが使った端末情報と最終ログイン"
+};
+const content = document.getElementById("content");
+const nav = document.getElementById("nav");
+
+function render() {
+  nav.innerHTML = sections.map(s => `<button data-jump="${s.id}">${s.icon} ${s.title}</button>`).join("");
+  content.innerHTML = sections.map(s => `
+    <section class="section guide" id="${s.id}">
+      <div class="section-head"><h2>${s.icon} ${s.title}</h2><p>${s.desc}</p></div>
+      <div class="items">
+        ${s.items.map((it,i)=>`<article class="item" data-search="${(s.title+" "+s.desc+" "+it[0]+" "+it[1]).toLowerCase()}">
+          <h3>${i+1}. ${it[0]}</h3><p>${it[1]}</p>
+        </article>`).join("")}
+      </div>
+    </section>`).join("");
+}
+render();
+
+function renderFunctions() {
+  const root=document.getElementById("funcs");
+  root.className="funcgrid";
+  const all=[];
+  for (const [group,names] of Object.entries(functionGroups)) {
+    for (const name of names) all.push({group,name,desc:functionDesc[name]||"サイト内部で使われる処理。"});
+  }
+  root.innerHTML=all.map(x=>`<div class="func" data-search="${(x.group+" "+x.name+" "+x.desc).toLowerCase()}">
+    <code>${x.name}()</code><span>${x.group} / ${x.desc}</span>
+  </div>`).join("");
+}
+renderFunctions();
+
+document.getElementById("dbrows").innerHTML = Object.keys(dbDesc).map(k=>`<tr><td><code>${k}</code></td><td>${dbDesc[k]}</td></tr>`).join("");
+
+nav.addEventListener("click", e => {
+  const b=e.target.closest("button[data-jump]"); if(!b) return;
+  document.getElementById(b.dataset.jump)?.scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("side").classList.remove("open");
+});
+document.getElementById("q").addEventListener("input", e => {
+  const q=e.target.value.trim().toLowerCase();
+  document.querySelectorAll(".guide,.func,.section#functions,.section#db").forEach(el=>{
+    if(!q) {el.classList.remove("hidden"); return;}
+  });
+  let count=0;
+  document.querySelectorAll(".guide .item,.func").forEach(el=>{
+    const ok=!q || el.dataset.search.includes(q);
+    el.classList.toggle("hidden",!ok);
+    if(ok) count++;
+  });
+  document.querySelectorAll(".guide").forEach(sec=>{
+    const visible=[...sec.querySelectorAll(".item")].some(x=>!x.classList.contains("hidden"));
+    sec.classList.toggle("hidden",q && !visible);
+  });
+  document.getElementById("functions").classList.toggle("hidden", q && ![...document.querySelectorAll(".func")].some(x=>!x.classList.contains("hidden")));
+  document.getElementById("db").classList.toggle("hidden", q && ![...document.querySelectorAll("#dbrows tr")].some(x=>x.textContent.toLowerCase().includes(q)));
+});
+document.getElementById("expand").onclick=()=>document.querySelectorAll(".section").forEach(s=>s.classList.remove("hidden"));
+document.getElementById("collapse").onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
+document.getElementById("top").onclick=()=>window.scrollTo({top:0,behavior:"smooth"});
+document.getElementById("print").onclick=()=>window.print();
+document.getElementById("menuBtn").onclick=()=>document.getElementById("side").classList.toggle("open");
+window.addEventListener("scroll",()=>{
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById("progress").style.width=(h>0?(scrollY/h*100):0)+"%";
+});
+document.addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.getElementById("q").focus();}
+  if(e.key==="Escape"){document.getElementById("q").value="";document.getElementById("q").dispatchEvent(new Event("input"));}
+});
+</script>
+</body>
+</html>
