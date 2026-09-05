@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>chanpro-Postの総いいね数、総閲覧数のスクレイピング動作について</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #fff;
+      color: #111;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Noto Sans JP",
+        sans-serif;
+    }
+
+    main {
+      min-height: 100vh;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 12vh 6vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      color: #999;
+      font-size: 12px;
+      letter-spacing: .12em;
+    }
+
+    .label::before {
+      content: "";
+      width: 32px;
+      height: 1px;
+      background: #111;
+    }
+
+    h1 {
+      margin: 0 0 40px;
+      font-size: clamp(42px, 7vw, 76px);
+      font-weight: 500;
+      letter-spacing: -.05em;
+      line-height: 1.1;
+    }
+
+    .description {
+      max-width: 650px;
+      padding-left: 2px;
+      color: #666;
+      font-size: 16px;
+      line-height: 2.2;
+
+      /* 改行を反映 */
+      white-space: pre-line;
+    }
+
+    .description a {
+      color: #111;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      transition: opacity .2s;
+    }
+
+    .description a:hover {
+      opacity: .5;
+    }
+
+    .description::after {
+      content: "";
+      display: block;
+      width: 100%;
+      height: 1px;
+      margin-top: 50px;
+      background: #eee;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        padding: 10vh 8vw;
+      }
+
+      h1 {
+        margin-bottom: 30px;
+      }
+
+      .description {
+        font-size: 15px;
+        line-height: 2;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <div class="label">ABOUT</div>
+
+    <h2>chanpro-Postの総いいね数、総閲覧数のスクレイピング動作について</h2>
+
+    <div class="description" id="description"></div>
+  </main>
+
+  <script>
+    // ここを書き換えるだけ
+    const text = `
+このスクレイピング動作は、プロフィール編集に入力した情報に基づいて、githubによる定期実行により更新がされております。そのため、プロフィールURLを設定し、すぐには、更新が始まりません。
+目安は、半日ほどです。
+
+githubによる更新プログラムのスクレイピングプログラム本体
+https://github.com/minatopi/chanpro-list-update
+`;
+
+    const description = document.getElementById("description");
+
+    // HTMLエスケープ
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // URLをリンク化
+    function linkify(str) {
+      const escaped = escapeHTML(str);
+
+      return escaped.replace(
+        /(https?:\/\/[^\s<]+)/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+      );
+    }
+
+    description.innerHTML = linkify(text);
+  </script>
+
+</body>
+</html>
