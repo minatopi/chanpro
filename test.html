@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIトレンドタグ実験室</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px;
+    background: #f3f5f9;
+    color: #202638;
+    font-family: system-ui, sans-serif;
+  }
+  main {
+    max-width: 640px;
+    margin: 30px auto;
+    padding: 24px;
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 8px 30px #18233a12;
+  }
+  h1 { font-size: 24px; margin-top: 0; }
+  p { line-height: 1.7; }
+  textarea, input {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #ccd2df;
+    border-radius: 10px;
+    font: inherit;
+  }
+  textarea { min-height: 150px; resize: vertical; }
+  button {
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 10px;
+    background: #5b55e7;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:disabled { opacity: .55; cursor: wait; }
+  .secondary { background: #e9eaf2; color: #30364a; }
+  .field { margin: 18px 0; }
+  label { display: block; margin-bottom: 8px; font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .chip {
+    background: #eeedff;
+    color: #4e43bc;
+    border-radius: 20px;
+    padding: 9px 13px;
+    cursor: pointer;
+    border: 1px solid #d9d5ff;
+  }
+  #status {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding: 12px;
+    background: #f4f5f8;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .hint { color: #697187; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>✨ AIトレンドタグ実験室</h1>
+  <p>投稿本文を入力すると、AIが内容に合ったトレンドタグ候補を提案します。</p>
+
+  <div class="field">
+    <label for="apiUrl">Vercel API URL</label>
+    <input id="apiUrl"
+      type="url"
+      placeholder="https://your-project.vercel.app/api/trend-tags">
+    <p class="hint">Vercelで発行されたURLの末尾に /api/trend-tags を付けてください。</p>
+  </div>
+
+  <div class="field">
+    <label for="postText">投稿本文</label>
+    <textarea id="postText" placeholder="例：新作ゲームをプレイしてみた！グラフィックがすごくきれいで面白い。"></textarea>
+  </div>
+
+  <button id="suggestButton" type="button">✨ AIでトレンドを提案</button>
+
+  <div class="field">
+    <label>提案されたタグ</label>
+    <div id="tags" class="chips"></div>
+    <button id="copyButton" class="secondary" type="button">タグをまとめてコピー</button>
+  </div>
+
+  <div class="field">
+    <label>実行状況</label>
+    <div id="status" role="status" aria-live="polite">準備完了。Vercel API URLを入力してください。</div>
+  </div>
+</main>
+
+<script>
+const apiUrlInput = document.getElementById("apiUrl");
+const postText = document.getElementById("postText");
+const suggestButton = document.getElementById("suggestButton");
+const copyButton = document.getElementById("copyButton");
+const tagsEl = document.getElementById("tags");
+const statusEl = document.getElementById("status");
+
+let tags = [];
+
+function showStatus(message) {
+  statusEl.textContent = message;
+}
+
+function normalizeTag(value) {
+  if (typeof value !== "string") return "";
+  return value.trim()
+    .replace(/^#+/, "")
+    .replace(/\s+/g, "")
+    .slice(0, 40);
+}
+
+function renderTags() {
+  tagsEl.replaceChildren();
+
+  tags.forEach(tag => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.textContent = "#" + tag;
+    chip.title = "クリックしてこのタグをコピー";
+
+    chip.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText("#" + tag);
+        showStatus("コピーしました：#" + tag);
+      } catch {
+        showStatus("コピーできませんでした。HTTPS環境でお試しください。");
+      }
+    });
+
+    tagsEl.appendChild(chip);
+  });
+}
+
+suggestButton.addEventListener("click", async () => {
+  const content = postText.value.trim();
+  const apiUrl = apiUrlInput.value.trim();
+
+  if (!content) {
+    showStatus("先に投稿本文を入力してください。");
+    postText.focus();
+    return;
+  }
+
+  if (!apiUrl) {
+    showStatus("Vercel API URLを入力してください。");
+    apiUrlInput.focus();
+    return;
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(apiUrl);
+    if (parsedUrl.protocol !== "https:") {
+      throw new Error("HTTPS URLを使用してください。");
+    }
+  } catch (error) {
+    showStatus("API URLが正しくありません：" + error.message);
+    return;
+  }
+
+  if (!parsedUrl.pathname.endsWith("/api/trend-tags")) {
+    showStatus("URLの末尾を /api/trend-tags にしてください。");
+    return;
+  }
+
+  suggestButton.disabled = true;
+  suggestButton.textContent = "AIが考えています...";
+  showStatus("Vercelサーバーに接続しています...");
+
+  try {
+    const response = await fetch(parsedUrl.href, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        result.error?.message || `HTTP ${response.status}`
+      );
+    }
+
+    const answer = result.choices?.[0]?.message?.content || "";
+    let proposed;
+
+    try {
+      const cleaned = answer
+        .replace(/```json/gi, "")
+        .replace(/```/g, "")
+        .trim();
+
+      const parsed = JSON.parse(cleaned);
+      proposed = Array.isArray(parsed) ? parsed : (parsed.tags || []);
+    } catch {
+      proposed = answer.match(/#[^\s,、]+|[^\s,、\[\]"]+/g) || [];
+    }
+
+    tags = [...new Set(
+      proposed.map(normalizeTag).filter(Boolean)
+    )].slice(0, 3);
+
+    renderTags();
+
+    showStatus(tags.length
+      ? `成功！${tags.length}個のタグを取得しました。`
+      : "AIからタグ候補を取得できませんでした。回答：" + answer
+    );
+  } catch (error) {
+    console.error(error);
+    showStatus(
+      "エラー：" + error.message +
+      "\n\nVercelのデプロイ状態、API URL、ALLOWED_ORIGIN、環境変数を確認してください。"
+    );
+  } finally {
+    suggestButton.disabled = false;
+    suggestButton.textContent = "✨ AIでトレンドを提案";
+  }
+});
+
+copyButton.addEventListener("click", async () => {
+  if (!tags.length) {
+    showStatus("コピーできるタグがありません。");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(
+      tags.map(tag => "#" + tag).join(" ")
+    );
+    showStatus("タグをまとめてコピーしました！");
+  } catch {
+    showStatus("コピーに失敗しました。HTTPS環境でお試しください。");
+  }
+});
+</script>
+</body>
+</html>
